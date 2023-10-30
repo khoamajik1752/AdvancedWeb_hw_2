@@ -123,3 +123,26 @@ div {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+div .apikey-form{
+  align-items:end;
+ 
+}
+.apikey-form{
+  width: 500px;
+  height: 50px;
+  margin-right: 0px;
+}
+.apikey-form button{
+  width: 150px;
+}
+.api-container{
+  text-align: right;
+}
+.current-apikey-container{
+
+}
+.current-apikey-container div{
+  height: 10px;
+  line-height: 10px;
+  text-align: left;
+}
