@@ -1,25 +1,101 @@
-import logo from './logo.svg';
-import './App.css';
 
-function App() {
+import './App.css';
+import NavBar from './components/NavBar';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+function PhotoSearch() {
+  const [searchText, setSearchText] = useState('');
+  const [photos, setPhotos] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  const accessKey = 'jBfuPYr1_IBaKGCCylz--k0PnPnI2kMtiCuE8z8nxeM';
+  // const accessKey= 'Q0Qh25O6IAK44skQgX5az_HFZJ56v5RX-h43-HoiJlw';
+  // const accessKey = 'Ye09uOa5e9vdQGoD9Y3UzAuy-t9rHPPWjYvpKtnXVsE';
+  const perPage = 10;
+  let searchTimeout;
+
+  const handleSearch = () => {
+    clearTimeout(searchTimeout); // Clear any existing timeout
+
+    searchTimeout = setTimeout(() => {
+      setPhotos([]);
+      setPage(1);
+      loadPhotos();
+    }, 500); 
+  };
+
+  const loadPhotos = () => {
+    // console.log('requesting', searchText)
+    setLoading(true);
+
+    axios
+      .get(`https://api.unsplash.com/search/photos`, {
+        params: {
+          query: searchText,
+          page,
+          per_page: perPage,
+        },
+        headers: {
+          Authorization: `Client-ID ${accessKey}`,
+        },
+      })
+      .then((response) => {
+        const newPhotos = response.data.results;
+        if (page === 1) {
+          setPhotos(newPhotos);
+        } else {
+          setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
+        }
+        // setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
+        setPage(page + 1);
+        setLoading(false);
+        setHasMore(newPhotos.length === perPage);
+      })
+      .catch((error) => {
+        console.error(error);
+        setLoading(false);
+      });
+  };
+
+  const searchOnTyping = (value) => {
+    setPage(1)
+    setSearchText(value)
+  }
+  useEffect(() => {
+    if (loading === true) {
+      console.log('Image is loading')
+    }
+    loadPhotos();
+  }, [searchText]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div>
+      <NavBar searchText={searchText} setSearchText={searchOnTyping} handleSearch={handleSearch}></NavBar>
+      {searchText.trim() === '' ? ( // Check if the search bar is empty
+        <div className="default-screen">
+          <h3>Enter a search query to find photos</h3>
+        </div>
+      ) : (
+        <InfiniteScroll
+          dataLength={photos.length}
+          next={loadPhotos}
+          hasMore={hasMore}
+          loader={<h4 className='loading'>Loading...</h4>}
         >
-          Learn React
-        </a>
-      </header>
+          <div className="photo-grid">
+          {photos.map((photo) => (
+              <img key={photo.id} src={photo.urls.small} alt={photo.description} />
+            ))}
+            
+          </div>
+        </InfiniteScroll>
+      )}
     </div>
   );
 }
 
-export default App;
+export default PhotoSearch;

@@ -6,18 +6,27 @@ const instance = axios.create({
     headers: { 'X-Custom-Header': 'foobar' }
 });
 
-export async function getAll({page,per_page}) {
-    let response = await instance.get('/photos', {
+export async function getAll({ page, per_page }) {
+
+    let _urls=[]
+    await instance.get('/photos', {
         params: {
             client_id: '2323',
             page: page,
             per_page: per_page
         }
+    }).then(res=>{
+        _urls = res.data.map(num => {
+            return num.urls.small
+    
+        })
+    }).catch(e => {
+        _urls = []
     })
 
-    console.log(response.data.map(num=>{
-       return  num.urls.small
-    }))
-    return response
+
+    // console.log(_urls)
+
+    return _urls
 }
 
